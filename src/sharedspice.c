@@ -744,6 +744,16 @@ pvector_info  ngGet_Vec_Info(char* vecname)
     return myvec;
 };
 
+/* Frees the unneeded memory after the simulation, used between two simulation
+ * runs in order to avoid memory leaks
+*/
+IMPEXP
+void ngSpice_FreeResources() {
+    nghash_free(plot_list->pl_lookup_table, NULL, NULL);
+    cp_free_control();
+}
+
+
 /* Receive a circuit from the caller as a
    pointer to an array of char* .
    Last entry in array has to be NULL

@@ -82,8 +82,10 @@ create_model( CKTcircuit* ckt, INPmodel* modtmp, INPtables* tab )
     tfree(parm);
     while (*line != '\0') {
       INPgetTok(&line, &parm, 1);
-      if (!*parm)
+      if (!*parm) {
+        FREE(parm);
         continue;
+      }
 
       for (j = 0; j < *(ft_sim->devices[modtmp->INPmodType]->numModelParms); j++) {
 

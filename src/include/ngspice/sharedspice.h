@@ -321,6 +321,13 @@ IMPEXP
 bool ngSpice_SetBkpt(double time);
 
 
+/* Frees the unneeded memory after the simulation, used between two simulation
+ * runs in order to avoid memory leaks
+*/
+IMPEXP
+void ngSpice_FreeResources();
+
+
 #ifdef __cplusplus
 }
 #endif
