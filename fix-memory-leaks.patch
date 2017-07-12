@@ -1,0 +1,69 @@
+From e1ae22a7c8a7ebc5defce4f4e5a17d4d9df43f30 Mon Sep 17 00:00:00 2001
+From: Marek Bielik <bielik@zulapost.net>
+Date: Tue, 18 Apr 2017 18:04:40 +0200
+Subject: [PATCH] fix memory leaks
+
+---
+ src/include/ngspice/sharedspice.h |  7 +++++++
+ src/sharedspice.c                 | 10 ++++++++++
+ src/spicelib/parser/inpgmod.c     |  4 +++-
+ 3 files changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/src/include/ngspice/sharedspice.h b/src/include/ngspice/sharedspice.h
+index d0f4711..ed269b3 100644
+--- a/src/include/ngspice/sharedspice.h
++++ b/src/include/ngspice/sharedspice.h
+@@ -321,6 +321,13 @@ IMPEXP
+ bool ngSpice_SetBkpt(double time);
+ 
+ 
++/* Frees the unneeded memory after the simulation, used between two simulation
++ * runs in order to avoid memory leaks
++*/
++IMPEXP
++void ngSpice_FreeResources();
++
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/src/sharedspice.c b/src/sharedspice.c
+index 77c0a58..31e7a31 100644
+--- a/src/sharedspice.c
++++ b/src/sharedspice.c
+@@ -744,6 +744,16 @@ pvector_info  ngGet_Vec_Info(char* vecname)
+     return myvec;
+ };
+ 
++/* Frees the unneeded memory after the simulation, used between two simulation
++ * runs in order to avoid memory leaks
++*/
++IMPEXP
++void ngSpice_FreeResources() {
++    nghash_free(plot_list->pl_lookup_table, NULL, NULL);
++    cp_free_control();
++}
++
++
+ /* Receive a circuit from the caller as a
+    pointer to an array of char* .
+    Last entry in array has to be NULL
+diff --git a/src/spicelib/parser/inpgmod.c b/src/spicelib/parser/inpgmod.c
+index 2623ee0..32259b6 100644
+--- a/src/spicelib/parser/inpgmod.c
++++ b/src/spicelib/parser/inpgmod.c
+@@ -82,8 +82,10 @@ create_model( CKTcircuit* ckt, INPmodel* modtmp, INPtables* tab )
+     tfree(parm);
+     while (*line != '\0') {
+       INPgetTok(&line, &parm, 1);
+-      if (!*parm)
++      if (!*parm) {
++        FREE(parm);
+         continue;
++      }
+ 
+       for (j = 0; j < *(ft_sim->devices[modtmp->INPmodType]->numModelParms); j++) {
+ 
+-- 
+2.7.4
+
